@@ -1,8 +1,8 @@
 # TinyVM — a correct tiny stack VM
 
 A correct tiny stack virtual machine for make.fun's
-`tiny-stack-vm-01-run-20261122` bounty. It replicates the reference VM
-exactly, including every trap code and the step and output limits.
+`tiny-stack-vm-01-run-20261122` bounty. It matches the reference VM
+exactly, every trap code and the step and output limits included.
 
 ## Score
 
@@ -32,4 +32,5 @@ Each `<id>/` holds `program.bin` and `input.bin`; the run writes
 
 ## Files
 
-`main.ts` — the VM. `LICENSE` — MIT. `.makefun/owner.json` — wallet.
+`main.ts` — the VM. `LICENSE` — MIT. `owner.json` — wallet.
+
