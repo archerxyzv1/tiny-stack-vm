@@ -28,8 +28,8 @@ MAKEFUN_INPUT_DIR=<input-dir> MAKEFUN_OUTPUT_DIR=<output-dir> node main.ts
 ```
 
 Each `<id>/` holds `program.bin` and `input.bin`; the run writes
-`<id>/stdout.bin` and `<id>/exit.txt`. Node 22, standard library only.
+`<id>/stdout.bin` and `<id>/exit.txt`. Node 22, stdlib only.
 
 ## Files
 
-`main.ts` — the VM. `LICENSE` — MIT. `.makefun/owner.json` — payout wallet.
+`main.ts` — the VM. `LICENSE` — MIT. `.makefun/owner.json` — wallet.
