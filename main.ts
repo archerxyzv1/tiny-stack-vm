@@ -6,6 +6,7 @@ import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 // [opcode, immediate bytes, pops, pushes] for every opcode.
+const enc = new TextEncoder();
 const OPS = [
   [0x00, 0, 0, 0], [0x01, 1, 0, 1], [0x02, 4, 0, 1], [0x03, 0, 1, 0],
   [0x04, 0, 1, 2], [0x05, 0, 2, 2], [0x06, 0, 2, 3], [0x07, 0, 3, 3],
@@ -111,7 +112,7 @@ function run(p, inp) {
       continue;
     }
     if (o === 0x50) {
-      const bytes = new TextEncoder().encode(String(D[sp - 1]));
+      const bytes = enc.encode(String(D[sp - 1]));
       if (olen + bytes.length > 65536) return done(11);
       sp--;
       out.set(bytes, olen);
