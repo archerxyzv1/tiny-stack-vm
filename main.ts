@@ -5,6 +5,13 @@
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+// The machine's bounds (ISA.md "The machine").
+const STACK_MAX = 256;
+const CALLS_MAX = 64;
+const MEMORY_WORDS = 256;
+const STEP_LIMIT = 1000000;
+const OUTPUT_MAX = 65536;
+
 // [opcode, immediate bytes, pops, pushes] for every opcode.
 const enc = new TextEncoder();
 const OPS = [
@@ -23,19 +30,19 @@ const META = new Map(OPS.map((o) => [o[0], o]));
 
 function run(p, inp) {
   const n = p.length;
-  const D = new Int32Array(256);
+  const D = new Int32Array(STACK_MAX);
   let sp = 0;
-  const C = new Int32Array(64);
+  const C = new Int32Array(CALLS_MAX);
   let csp = 0;
-  const M = new Int32Array(256);
-  const out = new Uint8Array(65536);
+  const M = new Int32Array(MEMORY_WORDS);
+  const out = new Uint8Array(OUTPUT_MAX);
   let olen = 0;
   let ip = 0;
   let pc = 0;
   let steps = 0;
   const done = (code) => ({ out: out.slice(0, olen), code });
   for (;;) {
-    if (steps === 1000000) return done(10);
+    if (steps === STEP_LIMIT) return done(10);
     if (pc < 0 || pc >= n) return done(9);
     const op = META.get(p[pc]);
     if (op === undefined) return done(5);
@@ -44,7 +51,7 @@ function run(p, inp) {
     steps++;
     const next = pc + 1 + imm;
     if (sp < pops) return done(2);
-    if (sp - pops + pushes > 256) return done(3);
+    if (sp - pops + pushes > STACK_MAX) return done(3);
     pc = next;
     const o = op[0];
     if (o === 0x00) return done(0);
@@ -88,7 +95,7 @@ function run(p, inp) {
       continue;
     }
     if (o === 0x33) {
-      if (csp === 64) return done(7);
+      if (csp === CALLS_MAX) return done(7);
       C[csp++] = next;
       pc = p[next - 2] | (p[next - 1] << 8);
       continue;
@@ -100,27 +107,27 @@ function run(p, inp) {
     }
     if (o === 0x40) {
       const addr = D[sp - 1];
-      if (addr < 0 || addr >= 256) return done(6);
+      if (addr < 0 || addr >= MEMORY_WORDS) return done(6);
       D[sp - 1] = M[addr];
       continue;
     }
     if (o === 0x41) {
       const addr = D[sp - 1], v = D[sp - 2];
-      if (addr < 0 || addr >= 256) return done(6);
+      if (addr < 0 || addr >= MEMORY_WORDS) return done(6);
       sp -= 2;
       M[addr] = v;
       continue;
     }
     if (o === 0x50) {
       const bytes = enc.encode(String(D[sp - 1]));
-      if (olen + bytes.length > 65536) return done(11);
+      if (olen + bytes.length > OUTPUT_MAX) return done(11);
       sp--;
       out.set(bytes, olen);
       olen += bytes.length;
       continue;
     }
     if (o === 0x51) {
-      if (olen + 1 > 65536) return done(11);
+      if (olen + 1 > OUTPUT_MAX) return done(11);
       out[olen++] = D[--sp] & 255;
       continue;
     }
